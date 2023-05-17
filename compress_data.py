@@ -62,12 +62,12 @@ txtDirName  = os.path.join('data', 'Img_txts')
 #   Looping across all images in the source directory, compressing all images
 #   that we want to keep in the final dataset. 
 #   We want to keep images whose names start with 'img011' to 'img036'.
-# for fn in sourceDir:
-#     label = int(fn.split("-")[0][3:])
-#     if label >= 11 and label <= 36:
-#         fp   = os.path.join(srcDirName, fn)
-#         dest = os.path.join(destDirName, fn)
-#         compressImage(fp, FINSIZE, dest)
+for fn in sourceDir:
+    label = int(fn.split("-")[0][3:])
+    if label >= 11 and label <= 36:
+        fp   = os.path.join(srcDirName, fn)
+        dest = os.path.join(destDirName, fn)
+        compressImage(fp, FINSIZE, dest)
 
 # TEXT CONVERSION
 #   Looping across all images in the destination directory, converting all
