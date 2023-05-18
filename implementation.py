@@ -45,11 +45,13 @@ class ImgClassifier:
         return np.array_split(Xy_pairs, numBatches)
 
     # Primary Training Function
-    def fit(self, X, y, numBatches=26, iterations=50):
+    def fit(self, X, y, numBatches=20, iterations=50):
         # Step 1: Randomly split data into batches.
         batches = self.batchData(X, y, numBatches)
 
-        # Step 2: Perform front prop on a data sample.
+        # Step 2: Perform forward prop on a data sample.
+        
+
         # Step 3: Perform back prop on the same data sample.
         # Step 4: Record values obtained from back prop.
         # Step 5: Repeat steps 2-4 on all elements in the first batch.
