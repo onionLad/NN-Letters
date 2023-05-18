@@ -9,6 +9,7 @@
 
 # Imports
 import numpy as np
+import math
 
 # Globals
 INPUTSIZE  = 588    # Size of inputs (letter images)
@@ -44,22 +45,42 @@ class ImgClassifier:
         np.random.shuffle(Xy_pairs)
         return np.array_split(Xy_pairs, numBatches)
 
+    # Foward propogation. Performs matrix multiplication to obtain an output
+    # vector from an input vector.
+    def forwardProp(self, pix):
+        z1 = np.matmul(self.W0, pix)
+
+    # Uses forward and backward propogation to find average adjustment values
+    # to apply to the classifier's weights and biases.
+    def getAvgAdjustments(self, X, y):
+        dW0, db0, dW1, db1, dW2, db2 = 0, 0, 0, 0, 0, 0
+
+        # for idx, pix in np.ndenumerate(X):
+        #     print()
+
+        return dW0, db0, dW1, db1, dW2, db2
+
+    # Uses the average adjustment values found by getAvgAdjustments to update
+    # the classifier's weights and biases.
+    def updateParams(self, dW0, db0, dW1, db1, dW2, db2):
+        self.W0 -= self.alpha * dW0
+        self.b0 -= self.alpha * db0
+        self.W1 -= self.alpha * dW1
+        self.b1 -= self.alpha * db1
+        self.W2 -= self.alpha * dW2
+        self.b2 -= self.alpha * db2
+
     # Primary Training Function
-    def fit(self, X, y, numBatches=20, iterations=50):
-        # Step 1: Randomly split data into batches.
+    def fit(self, X, y, numBatches=50):
+        # Randomly split data into batches.
         batches = self.batchData(X, y, numBatches)
 
-        # Step 2: Perform forward prop on a data sample.
-        
-
-        # Step 3: Perform back prop on the same data sample.
-        # Step 4: Record values obtained from back prop.
-        # Step 5: Repeat steps 2-4 on all elements in the first batch.
-        # Step 6: Update weights and biases according to average adjustments
-        #         found in Step 6.
-        # Step 7: Repeat steps 5-6 on each batch until you've performed the
-        #         desired number of iterations.
-        return None
+        # Loop over the batches.
+        # For each batch, perform forward prop, back prop, and update weights
+        # and biases according to average adjustments found using back prop.
+        for batch in batches:
+            dW0, db0, dW1, db1, dW2, db2 = self.getAvgAdjustments(X, y)
+            self.updateParams( dW0, db0, dW1, db1, dW2, db2 )
 
     # Classifing - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Primary Classification Function
