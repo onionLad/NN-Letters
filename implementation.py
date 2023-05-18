@@ -12,7 +12,7 @@ import numpy as np
 import math
 
 # Globals
-INPUTSIZE  = 588    # Size of inputs (letter images)
+INPUTSIZE  = 587    # Size of inputs (letter images)
 LAYERSIZE  = 16     # Size of hidden layers
 OUTPUTSIZE = 26     # Size of output vector
 
@@ -27,14 +27,14 @@ class ImgClassifier:
         self.rand  = randomState
 
         # Randomly Generated Variables
-        #   We are hardcoding the number of layers for simplicity's sake. 
+        #   We are hardcoding the number of layers for simplicity's sake
         np.random.seed(self.rand)
         self.W0 = np.random.rand(LAYERSIZE, INPUTSIZE)
-        self.b0 = np.random.rand(LAYERSIZE, 1)
+        self.b0 = np.random.rand(LAYERSIZE)
         self.W1 = np.random.rand(LAYERSIZE, LAYERSIZE)
-        self.b1 = np.random.rand(LAYERSIZE, 1)
-        self.W2 = np.random.rand(LAYERSIZE, OUTPUTSIZE)
-        self.b2 = np.random.rand(OUTPUTSIZE, 1)
+        self.b1 = np.random.rand(LAYERSIZE)
+        self.W2 = np.random.rand(OUTPUTSIZE, LAYERSIZE)
+        self.b2 = np.random.rand(OUTPUTSIZE)
 
     # Training - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,18 +45,73 @@ class ImgClassifier:
         np.random.shuffle(Xy_pairs)
         return np.array_split(Xy_pairs, numBatches)
 
+    # Sigmoid function. This is our activation function, used to normalize
+    # np arrays of weighted sums.
+    def sigmoid(self, arr):
+        sig = lambda x: 1 / (1 + math.exp(-x))
+        return np.array( [sig(x) for x in arr] )
+
     # Foward propogation. Performs matrix multiplication to obtain an output
     # vector from an input vector.
     def forwardProp(self, pix):
-        z1 = np.matmul(self.W0, pix)
+        z1 = np.add(np.matmul(self.W0, pix), self.b0)
+        a1 = self.sigmoid(z1)
+        z2 = np.add(np.matmul(self.W1, a1), self.b1)
+        a2 = self.sigmoid(z2)
+        z3 = np.add(np.matmul(self.W2, a2), self.b2)
+        a3 = self.sigmoid(z3)
+        return z1, a1, z2, a2, z3, a3
+
+    # Sigmoid derivative function. This function is used to compute deltas,
+    # which represent the change in cost with respect to the weighted sums.
+    def sigmoidDerivative(self, arr):
+        sig    = lambda x: 1 / (1 + math.exp(-x))
+        sigDer = lambda x: sig(x) * (1 - sig(x))
+        return np.array( [sigDer(x) for x in arr] )
+
+    # Back propogation. Performs calculus to obtain adjustment values for all
+    # weights and biases.
+    def backProp(self, y, z1, a1, z2, a2, z3, a3):
+
+        # Obtaining expected output vector
+        y_exp = np.zeros(OUTPUTSIZE)
+        y_exp[ord(y) - 65] = 1
+
+        # Computing necessary back prop values
+        c = np.square(np.subtract(a3, y_exp))   # Cost
+        delta3 = -2 * np.subtract(a3, y_exp) * self.sigmoidDerivative(z3)
+        dW2 = np.matmul(delta3, a3.T)
+
+        print(self.W2.shape)
+        print(dW2)
+
+        return 0, 0, 0, 0, 0, 0
 
     # Uses forward and backward propogation to find average adjustment values
     # to apply to the classifier's weights and biases.
     def getAvgAdjustments(self, X, y):
-        dW0, db0, dW1, db1, dW2, db2 = 0, 0, 0, 0, 0, 0
+        dW0, db0, dW1, db1, dW2, db2 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        count = 0
+        for idx, pix in enumerate(X):
+            z1, a1, z2, a2, z3, a3 = self.forwardProp(pix)
+            curr_dW0, curr_db0, curr_dW1, curr_db1, curr_dW2, curr_db2 = \
+                self.backProp(y[idx], z1, a1, z2, a2, z3, a3)
+            dW0 += curr_dW0
+            db0 += curr_db0
+            dW1 += curr_dW1
+            db1 += curr_db1
+            dW2 += curr_dW2
+            db2 += curr_db2
+            count += 1
+            break
 
-        # for idx, pix in np.ndenumerate(X):
-        #     print()
+        # Taking the averages of all changes to weights and biases
+        dW0 /= count
+        db0 /= count
+        dW1 /= count
+        db1 /= count
+        dW2 /= count
+        db2 /= count
 
         return dW0, db0, dW1, db1, dW2, db2
 
@@ -70,21 +125,23 @@ class ImgClassifier:
         self.W2 -= self.alpha * dW2
         self.b2 -= self.alpha * db2
 
-    # Primary Training Function
+    # Primary Training Function.
     def fit(self, X, y, numBatches=50):
-        # Randomly split data into batches.
+        # Randomly split data into batches
         batches = self.batchData(X, y, numBatches)
 
-        # Loop over the batches.
+        # Loop over the batches
         # For each batch, perform forward prop, back prop, and update weights
-        # and biases according to average adjustments found using back prop.
+        # and biases according to average adjustments found using back prop
         for batch in batches:
             dW0, db0, dW1, db1, dW2, db2 = self.getAvgAdjustments(X, y)
             self.updateParams( dW0, db0, dW1, db1, dW2, db2 )
 
+            break
+
     # Classifing - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Primary Classification Function
+    # Primary Classification Function.
     def predict(self, X):
-        # Step 1: Run all elements of X through the model.
+        # Step 1: Run all elements of X through the model
         return None
 
