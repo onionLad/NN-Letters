@@ -52,7 +52,7 @@ class ImgClassifier:
         return np.array( [sig(x) for x in arr] )
 
     # Foward propogation. Performs matrix multiplication to obtain an output
-    # vector from an input vector.
+    # vector from a single input vector.
     def forwardProp(self, pix):
         z1 = np.add(np.matmul(self.W0, pix), self.b0)
         a1 = self.sigmoid(z1)
@@ -80,9 +80,12 @@ class ImgClassifier:
         # Computing necessary back prop values
         db2 = np.multiply(-2 * np.subtract(a3, y_exp), self.sigmoidDerivative(z3))
         dW2 = np.matmul(db2, a3.T)
-        
+        db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
+        dW1 = np.matmul(db1, a2.T)
+        db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
+        dW0 = np.matmul(db0, a1.T)
 
-        return 0, 0, 0, 0, 0, 0
+        return dW0, db0, dW1, db1, dW2, db2
 
     # Uses forward and backward propogation to find average adjustment values
     # to apply to the classifier's weights and biases.
@@ -100,7 +103,6 @@ class ImgClassifier:
             dW2 += curr_dW2
             db2 += curr_db2
             count += 1
-            break
 
         # Taking the averages of all changes to weights and biases
         dW0 /= count
@@ -138,11 +140,15 @@ class ImgClassifier:
             self.updateParams( dW0, db0, dW1, db1, dW2, db2 )
             print('Processed batch ' + str(idx + 1) + '/' + str(numBatches))
 
-            break
-
     # Classifing - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # Function that uses forward propogation to find the label with the
+    # highest likelihood of being correct.
+    def findLabel(self, pix):
+        _, _, _, _, _, a3 = self.forwardProp(pix)
+        return chr(np.argmax(a3) + 65)
+
     # Primary Classification Function.
     def predict(self, X):
-        # Step 1: Run all elements of X through the model
-        return None
+        return np.array([self.findLabel(x) for x in X])
 

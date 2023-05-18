@@ -51,14 +51,19 @@ def splitData(data, randomState=10):
     xtr = np.array([ px for px, lb in train ])
     ytr = np.array([ lb for px, lb in train ])
     xte = np.array([ px for px, lb in test ])
-    yte = np.array([ px for px, lb in test ])
+    yte = np.array([ lb for px, lb in test ])
 
     return xtr, ytr, xte, yte
 
 # A function that determines the accuracy of a set of our neural network's
 # outputs compared to the corresponding actual values.
 def calcAccuracy(actual, expected):
-    return None
+    # We return (# of correct labels) / (# of labels).
+    count = 0
+    for idx, label in enumerate(actual):
+        if label == expected[idx]:
+            count += 1
+    return count / float(len(expected))
 
 # Body  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -73,6 +78,6 @@ classifier = ImgClassifier(alpha=0.1)
 classifier.fit(X_train, y_train)
 
 # # Testing the trained classifier and displaying its accuracy
-# predictions = classifier.predict(X_test)
-# print('Classifier Accuracy: ' + calcAccuracy(predictions, y_test))
+predictions = classifier.predict(X_test)
+print('Classifier Accuracy: ' + str(calcAccuracy(predictions, y_test)))
 
