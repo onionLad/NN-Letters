@@ -78,12 +78,9 @@ class ImgClassifier:
         y_exp[ord(y) - 65] = 1
 
         # Computing necessary back prop values
-        c = np.square(np.subtract(a3, y_exp))   # Cost
-        delta3 = -2 * np.subtract(a3, y_exp) * self.sigmoidDerivative(z3)
-        dW2 = np.matmul(delta3, a3.T)
-
-        print(self.W2.shape)
-        print(dW2)
+        db2 = np.multiply(-2 * np.subtract(a3, y_exp), self.sigmoidDerivative(z3))
+        dW2 = np.matmul(db2, a3.T)
+        
 
         return 0, 0, 0, 0, 0, 0
 
@@ -133,9 +130,13 @@ class ImgClassifier:
         # Loop over the batches
         # For each batch, perform forward prop, back prop, and update weights
         # and biases according to average adjustments found using back prop
-        for batch in batches:
-            dW0, db0, dW1, db1, dW2, db2 = self.getAvgAdjustments(X, y)
+        for idx, batch in enumerate(batches):
+            curr_X = np.array([pair[:INPUTSIZE] for pair in batch], dtype=float)
+            curr_y = np.array([pair[INPUTSIZE] for pair in batch])
+
+            dW0, db0, dW1, db1, dW2, db2 = self.getAvgAdjustments(curr_X, curr_y)
             self.updateParams( dW0, db0, dW1, db1, dW2, db2 )
+            print('Processed batch ' + str(idx + 1) + '/' + str(numBatches))
 
             break
 
