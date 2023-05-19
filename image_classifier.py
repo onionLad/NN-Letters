@@ -59,25 +59,22 @@ def splitData(data, randomState=10):
 # outputs compared to the corresponding actual values.
 def calcAccuracy(actual, expected):
     # We return (# of correct labels) / (# of labels).
-    count = 0
-    for idx, label in enumerate(actual):
-        if label == expected[idx]:
-            count += 1
-    return count / float(len(expected))
+    return np.sum([expected[i] == x for i, x in enumerate(actual)]) / float(len(expected))
 
 # Body  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Obtaining and splitting data into training and testing sets
 data = unpackData()
-print('Unpacked Data')
+# print('Unpacked Data')
 X_train, y_train, X_test, y_test = splitData(data)
-print('Split Data')
+# print('Split Data')
 
 # Generating and training the neural network classifier
 classifier = ImgClassifier(alpha=0.1)
-classifier.fit(X_train, y_train)
+classifier.fit(X_train, y_train, numBatches=1, iterations=100)
 
 # # Testing the trained classifier and displaying its accuracy
-predictions = classifier.predict(X_test)
-print('Classifier Accuracy: ' + str(calcAccuracy(predictions, y_test)))
+# predictions = classifier.predict(X_test)
+print('Train Accuracy: ' + str(round(classifier.accuracy(X_train, y_train) * 100, 2)) + '%')
+print('Test Accuracy: ' + str(round(classifier.accuracy(X_test, y_test) * 100, 2)) + '%')
 
