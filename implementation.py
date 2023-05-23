@@ -15,11 +15,25 @@ import math
 INPUTSIZE  = 587    # Size of inputs (letter images)
 LAYERSIZE  = 10     # Size of hidden layers
 OUTPUTSIZE = 26     # Size of output vector
+LIMITER    = 0.001   # Limits the range of initial weights and biases
 
 # The ImgClassifier Class
 class ImgClassifier:
 
-    # Constructor
+    # Construction - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # Helper function that normalizes initial parameter values so they all
+    # have the same variance. This is supposed to prevent vanishing and
+    # exploding gradients.
+    def normalizeParams(self):
+        self.W0 = (self.W0 - np.mean(self.W0)) / np.std(self.W0)
+        self.b0 = (self.b0 - np.mean(self.b0)) / np.std(self.b0)
+        self.W1 = (self.W1 - np.mean(self.W1)) / np.std(self.W1)
+        self.b1 = (self.b1 - np.mean(self.b1)) / np.std(self.b1)
+        self.W2 = (self.W2 - np.mean(self.W2)) / np.std(self.W2)
+        self.b2 = (self.b2 - np.mean(self.b2)) / np.std(self.b2)
+
+    # Constructor Function.
     def __init__(self, alpha, randomState=10):
 
         # User Defined Variables
@@ -29,12 +43,14 @@ class ImgClassifier:
         # Randomly Generated Variables
         #   We are hardcoding the number of layers for simplicity's sake
         np.random.seed(self.rand)
-        self.W0 = np.random.rand(LAYERSIZE,  INPUTSIZE) * 0.5
-        self.b0 = np.random.rand(LAYERSIZE,  1)         * 0.5
-        self.W1 = np.random.rand(LAYERSIZE,  LAYERSIZE) * 0.5
-        self.b1 = np.random.rand(LAYERSIZE,  1)         * 0.5
-        self.W2 = np.random.rand(OUTPUTSIZE, LAYERSIZE) * 0.5
-        self.b2 = np.random.rand(OUTPUTSIZE, 1)         * 0.5
+        self.W0 = np.random.rand(LAYERSIZE,  INPUTSIZE) * LIMITER
+        self.b0 = np.random.rand(LAYERSIZE,  1)         * LIMITER
+        self.W1 = np.random.rand(LAYERSIZE,  LAYERSIZE) * LIMITER
+        self.b1 = np.random.rand(LAYERSIZE,  1)         * LIMITER
+        self.W2 = np.random.rand(OUTPUTSIZE, LAYERSIZE) * LIMITER
+        self.b2 = np.random.rand(OUTPUTSIZE, 1)         * LIMITER
+
+        self.normalizeParams()
 
     # Training - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,34 +66,32 @@ class ImgClassifier:
     def sigmoid(self, arr):
         sig = lambda x: 1 / (1 + math.exp(-x[0]))
         return np.array( [sig(x) for x in arr] )
-    
+
     # ReLU, an alternative activation function.
     def ReLU(self, arr):
         return np.maximum(arr, 0)
 
+    # Softmax, a function that normalizes the output layer when using the ReLU
+    # activation function.
+    def Softmax(self, arr):
+        return np.divide(np.exp(arr), np.sum(np.exp(arr)))
+
     # Foward propogation. Performs matrix multiplication to obtain an output
     # vector from a single input vector.
     def forwardProp(self, pix):
-        z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        a1 = self.sigmoid(z1)
-        z2 = np.add(np.matmul(self.W1, a1), self.b1)
-        a2 = self.sigmoid(z2)
-        z3 = np.add(np.matmul(self.W2, a2), self.b2)
-        a3 = self.sigmoid(z3)
-
-        # # print('W0: ', self.W0.shape)
-        # # print('px: ', np.atleast_2d(pix).T.shape)
-        # # print('b0: ', self.b0.shape)
         # z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        # a1 = self.ReLU(z1)
-        # # print('W1: ', self.W1.shape)
-        # # print('A1: ', np.atleast_2d(a1).shape)
-        # z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
-        # a2 = self.ReLU(z2)
-        # # print('W2: ', self.W2.shape)
-        # # print('A2', np.atleast_2d(a2).shape)
-        # z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
+        # a1 = self.sigmoid(z1)
+        # z2 = np.add(np.matmul(self.W1, a1), self.b1)
+        # a2 = self.sigmoid(z2)
+        # z3 = np.add(np.matmul(self.W2, a2), self.b2)
         # a3 = self.sigmoid(z3)
+
+        z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
+        a1 = self.ReLU(z1)
+        z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
+        a2 = self.ReLU(z2)
+        z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
+        a3 = self.Softmax(z3)
 
         return z1, a1, z2, a2, z3, a3
 
@@ -93,6 +107,10 @@ class ImgClassifier:
     def ReLUDerivative(self, arr):
         return np.array([float(x > 0) for x in arr])
 
+    # Softmax "derivative" function. It serves to undo the softmax function.
+    def SoftmaxDerivative(self, arr):
+        return np.array([np.sum(arr) for x in arr])
+
     # Back propogation. Performs calculus to obtain adjustment values for all
     # weights and biases.
     def backProp(self, X, y, z1, a1, z2, a2, z3, a3):
@@ -102,33 +120,24 @@ class ImgClassifier:
         y_exp[ord(y) - 65] = 1
 
         # Computing change values
-        db2 = np.multiply(2 * np.subtract(a3, y_exp), self.sigmoidDerivative(z3))
-        dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
-        db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
-        dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
-
-        print(z3)
-        print(self.sigmoidDerivative(z3))
-        print()
-        print(z2)
-        print(self.sigmoidDerivative(z2))
-        print()
-        print(z1)
-        print(self.sigmoidDerivative(z1))
-        exit()
-
-        db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
-        dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
-
         # db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
-        # # print('     db2: ', db2.shape)
-        # dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2).T)
-        # db1 = np.multiply(np.matmul(self.W2.T, db2), self.ReLUDerivative(z2))
-        # # print('     db1: ', db1.shape)
-        # dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1).T)
-        # db0 = np.multiply(np.matmul(self.W1.T, db1), self.ReLUDerivative(z1))
-        # # print('     db0: ', db0.shape)
+        # dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
+        # db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
+        # dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
+        # db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
         # dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
+
+        dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
+        db2 = self.SoftmaxDerivative(dz3)
+        dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
+
+        dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
+        db1 = self.SoftmaxDerivative(z2)
+        dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
+
+        dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
+        db0 = self.SoftmaxDerivative(z1)
+        dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
 
         # print(f'Changes:\n  dW0 = {dW0}\n  db0 = {db0}\n  dW1 = {dW1}\n  db1 = {db1}\n  dW2 = {dW2}\n  db2 = {db2}')
         # exit()
@@ -183,7 +192,7 @@ class ImgClassifier:
         print(f'  Avg dW1: {np.mean(abs(dW1))}')
         print(f'  Avg db1: {np.mean(abs(db1))}')
         print(f'  Avg dW2: {np.mean(abs(dW2))}')
-        print(f'  Avg db2: {np.mean(abs(db2))}')
+        print(f'  Avg db2: {np.mean(abs(db2))}\n')
 
     # Primary Training Function.
     def fit(self, X, y, numBatches=1, iterations=500):
