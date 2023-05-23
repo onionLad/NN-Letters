@@ -13,7 +13,7 @@ import math
 
 # Globals
 INPUTSIZE  = 587    # Size of inputs (letter images)
-LAYERSIZE  = 16     # Size of hidden layers
+LAYERSIZE  = 10     # Size of hidden layers
 OUTPUTSIZE = 26     # Size of output vector
 
 # The ImgClassifier Class
@@ -29,12 +29,12 @@ class ImgClassifier:
         # Randomly Generated Variables
         #   We are hardcoding the number of layers for simplicity's sake
         np.random.seed(self.rand)
-        self.W0 = np.random.rand(LAYERSIZE,  INPUTSIZE)
-        self.b0 = np.random.rand(LAYERSIZE,  1)
-        self.W1 = np.random.rand(LAYERSIZE,  LAYERSIZE)
-        self.b1 = np.random.rand(LAYERSIZE,  1)
-        self.W2 = np.random.rand(OUTPUTSIZE, LAYERSIZE)
-        self.b2 = np.random.rand(OUTPUTSIZE, 1)
+        self.W0 = np.random.rand(LAYERSIZE,  INPUTSIZE) * 0.5
+        self.b0 = np.random.rand(LAYERSIZE,  1)         * 0.5
+        self.W1 = np.random.rand(LAYERSIZE,  LAYERSIZE) * 0.5
+        self.b1 = np.random.rand(LAYERSIZE,  1)         * 0.5
+        self.W2 = np.random.rand(OUTPUTSIZE, LAYERSIZE) * 0.5
+        self.b2 = np.random.rand(OUTPUTSIZE, 1)         * 0.5
 
     # Training - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -102,10 +102,21 @@ class ImgClassifier:
         y_exp[ord(y) - 65] = 1
 
         # Computing change values
-        db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
+        db2 = np.multiply(2 * np.subtract(a3, y_exp), self.sigmoidDerivative(z3))
         dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
         db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
         dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
+
+        print(z3)
+        print(self.sigmoidDerivative(z3))
+        print()
+        print(z2)
+        print(self.sigmoidDerivative(z2))
+        print()
+        print(z1)
+        print(self.sigmoidDerivative(z1))
+        exit()
+
         db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
         dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
 
@@ -163,12 +174,24 @@ class ImgClassifier:
 
     # Debugging function that prints the classifier's member variables.
     def printMembers(self):
-        print(f'self.W0 = {self.W0}') #\n  self.b0 = {self.b0}\n  self.W1 = {self.W1}\n  self.b1 = {self.b1}\n  self.W2 = {self.W2}\n  self.b2 = {self.b2}')
+        print(f'\nself.b0[0] = {self.b0[0]}\n')
+
+    # Debugging function that prints the average magnitude of the change values.
+    def printChanges(self, dW0, db0, dW1, db1, dW2, db2):
+        print(f'  Avg dW0: {np.mean(abs(dW0))}')
+        print(f'  Avg db0: {np.mean(abs(db0))}')
+        print(f'  Avg dW1: {np.mean(abs(dW1))}')
+        print(f'  Avg db1: {np.mean(abs(db1))}')
+        print(f'  Avg dW2: {np.mean(abs(dW2))}')
+        print(f'  Avg db2: {np.mean(abs(db2))}')
 
     # Primary Training Function.
     def fit(self, X, y, numBatches=1, iterations=500):
         # Randomly split data into batches
-        batches = self.batchData(X, y, numBatches)
+        batches = self.batchData(X, y, numBatches, self.rand)
+        print('Initial Training Accuracy: ' + str(self.accuracy(X, y)))
+        # self.printMembers()
+        initB0 = self.b0[0]
 
         for i in range(iterations):
             # self.printMembers()
@@ -181,6 +204,7 @@ class ImgClassifier:
                 curr_y = np.array([pair[INPUTSIZE] for pair in batch])
 
                 dW0, db0, dW1, db1, dW2, db2 = self.getAvgAdjustments(curr_X, curr_y)
+                self.printChanges(dW0, db0, dW1, db1, dW2, db2)
                 self.updateParams( dW0, db0, dW1, db1, dW2, db2 )
                 # print('Processed batch ' + str(idx) + '/' + str(numBatches))
                 # print(f'Changes:\n  dW0 = {dW0}\n  db0 = {db0}\n  dW1 = {dW1}\n  db1 = {db1}\n  dW2 = {dW2}\n  db2 = {db2}')
@@ -189,7 +213,11 @@ class ImgClassifier:
             # self.printMembers()
             if i % 10 == 0:
                 print('Processed iteration ' + str(i) + '/' + str(iterations))
+            # if i % 100 == 0:
                 print('  Current Accuracy: ' + str(self.accuracy(X, y)))
+        # self.printMembers()
+        print(f'\nChange in b0[0]: {(initB0 - self.b0[0])[0]}\n')
+
 
     # Classifying - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

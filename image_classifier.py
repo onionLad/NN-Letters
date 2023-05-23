@@ -13,6 +13,9 @@ import numpy as np
 import pandas as pd
 from implementation import ImgClassifier
 
+# Globals
+RANDOMSTATE = 10
+
 # Functions - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # A function that organizes all of our text files into an array of pairs,
@@ -59,19 +62,20 @@ def splitData(data, randomState=10):
 # outputs compared to the corresponding actual values.
 def calcAccuracy(actual, expected):
     # We return (# of correct labels) / (# of labels).
-    return np.sum([expected[i] == x for i, x in enumerate(actual)]) / float(len(expected))
+    # return np.sum([expected[i] == x for i, x in enumerate(actual)]) / float(len(expected))
+    return np.sum(actual == expected) / float(len(expected))
 
 # Body  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Obtaining and splitting data into training and testing sets
 data = unpackData()
 # print('Unpacked Data')
-X_train, y_train, X_test, y_test = splitData(data)
+X_train, y_train, X_test, y_test = splitData(data, randomState=RANDOMSTATE)
 # print('Split Data')
 
 # Generating and training the neural network classifier
-classifier = ImgClassifier(alpha=0.1)
-classifier.fit(X_train, y_train, numBatches=1, iterations=100)
+classifier = ImgClassifier(alpha=7.5, randomState=RANDOMSTATE)
+classifier.fit(X_train, y_train, numBatches=10, iterations=500)
 
 # # Testing the trained classifier and displaying its accuracy
 # predictions = classifier.predict(X_test)
