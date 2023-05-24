@@ -13,7 +13,7 @@ import math
 
 # Globals
 INPUTSIZE  = 587    # Size of inputs (letter images)
-LAYERSIZE  = 10     # Size of hidden layers
+LAYERSIZE  = 10    # Size of hidden layers
 OUTPUTSIZE = 26     # Size of output vector
 LIMITER    = 0.001   # Limits the range of initial weights and biases
 

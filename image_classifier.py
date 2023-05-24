@@ -14,7 +14,7 @@ import pandas as pd
 from implementation import ImgClassifier
 
 # Globals
-RANDOMSTATE = 10
+RANDOMSTATE = 11
 
 # Functions - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
