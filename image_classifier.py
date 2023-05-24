@@ -74,7 +74,7 @@ X_train, y_train, X_test, y_test = splitData(data, randomState=RANDOMSTATE)
 # print('Split Data')
 
 # Generating and training the neural network classifier
-classifier = ImgClassifier(alpha=0.1, randomState=RANDOMSTATE)
+classifier = ImgClassifier(alpha=7.5, randomState=RANDOMSTATE)
 classifier.fit(X_train, y_train, numBatches=1, iterations=500)
 
 # # Testing the trained classifier and displaying its accuracy
