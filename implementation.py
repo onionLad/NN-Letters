@@ -15,7 +15,7 @@ import math
 INPUTSIZE  = 4      # Size of inputs (letter images)
 LAYERSIZE  = 32     # Size of hidden layers
 OUTPUTSIZE = 3      # Size of output vector
-LIMITER    = 0.01   # Limits the range of initial weights and biases
+LIMITER    = 0.001  # Limits the range of initial weights and biases
 
 # The ImgClassifier Class
 class ImgClassifier:
@@ -91,19 +91,19 @@ class ImgClassifier:
     # Foward propogation. Performs matrix multiplication to obtain an output
     # vector from a single input vector.
     def forwardProp(self, pix):
-        z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        a1 = self.sigmoid(z1)
-        z2 = np.add(np.matmul(self.W1, a1), self.b1)
-        a2 = self.sigmoid(z2)
-        z3 = np.add(np.matmul(self.W2, a2), self.b2)
-        a3 = self.sigmoid(z3)
-
         # z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        # a1 = self.ReLU(z1)
-        # z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
-        # a2 = self.ReLU(z2)
-        # z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
-        # a3 = self.Softmax(z3)
+        # a1 = self.sigmoid(z1)
+        # z2 = np.add(np.matmul(self.W1, a1), self.b1)
+        # a2 = self.sigmoid(z2)
+        # z3 = np.add(np.matmul(self.W2, a2), self.b2)
+        # a3 = self.sigmoid(z3)
+
+        z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
+        a1 = self.ReLU(z1)
+        z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
+        a2 = self.ReLU(z2)
+        z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
+        a3 = self.Softmax(z3)
 
         return z1, a1, z2, a2, z3, a3
 
@@ -138,24 +138,24 @@ class ImgClassifier:
             y_exp[2] = 1
 
         # Computing change values
-        db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
-        dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
-        db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
-        dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
-        db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
-        dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
+        # db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
+        # dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
+        # db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
+        # dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
+        # db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
+        # dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
 
-        # dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
-        # db2 = self.SoftmaxDerivative(dz3)
-        # dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
+        dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
+        db2 = self.SoftmaxDerivative(dz3)
+        dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
 
-        # dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
-        # db1 = self.SoftmaxDerivative(z2)
-        # dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
+        dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
+        db1 = self.SoftmaxDerivative(z2)
+        dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
 
-        # dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
-        # db0 = self.SoftmaxDerivative(z1)
-        # dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
+        dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
+        db0 = self.SoftmaxDerivative(z1)
+        dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
 
         # print(f'Changes:\n  dW0 = {dW0}\n  db0 = {db0}\n  dW1 = {dW1}\n  db1 = {db1}\n  dW2 = {dW2}\n  db2 = {db2}')
         # exit()
