@@ -77,7 +77,7 @@ X_train, y_train, X_test, y_test = splitData(data, randomState=RANDOMSTATE)
 classifier = ImgClassifier(alpha=0.001, randomState=RANDOMSTATE)
 classifier.fit(X_train, y_train, numBatches=1, iterations=500)
 
-# # Testing the trained classifier and displaying its accuracy
+# Testing the trained classifier and displaying its accuracy
 # predictions = classifier.predict(X_test)
 print('Train Accuracy: ' + str(round(classifier.accuracy(X_train, y_train) * 100, 2)) + '%')
 print('Test Accuracy: ' + str(round(classifier.accuracy(X_test, y_test) * 100, 2)) + '%')

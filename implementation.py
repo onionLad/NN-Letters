@@ -12,9 +12,9 @@ import numpy as np
 import math
 
 # Globals
-INPUTSIZE  = 587    # Size of inputs (letter images)
-LAYERSIZE  = 10     # Size of hidden layers
-OUTPUTSIZE = 26     # Size of output vector
+INPUTSIZE  = 4      # Size of inputs (letter images)
+LAYERSIZE  = 32     # Size of hidden layers
+OUTPUTSIZE = 3      # Size of output vector
 LIMITER    = 0.01   # Limits the range of initial weights and biases
 
 # The ImgClassifier Class
@@ -91,19 +91,19 @@ class ImgClassifier:
     # Foward propogation. Performs matrix multiplication to obtain an output
     # vector from a single input vector.
     def forwardProp(self, pix):
-        # z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        # a1 = self.sigmoid(z1)
-        # z2 = np.add(np.matmul(self.W1, a1), self.b1)
-        # a2 = self.sigmoid(z2)
-        # z3 = np.add(np.matmul(self.W2, a2), self.b2)
-        # a3 = self.sigmoid(z3)
-
         z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
-        a1 = self.ReLU(z1)
-        z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
-        a2 = self.ReLU(z2)
-        z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
-        a3 = self.Softmax(z3)
+        a1 = self.sigmoid(z1)
+        z2 = np.add(np.matmul(self.W1, a1), self.b1)
+        a2 = self.sigmoid(z2)
+        z3 = np.add(np.matmul(self.W2, a2), self.b2)
+        a3 = self.sigmoid(z3)
+
+        # z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
+        # a1 = self.ReLU(z1)
+        # z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
+        # a2 = self.ReLU(z2)
+        # z3 = np.add(np.matmul(self.W2, np.atleast_2d(a2)), self.b2)
+        # a3 = self.Softmax(z3)
 
         return z1, a1, z2, a2, z3, a3
 
@@ -129,27 +129,33 @@ class ImgClassifier:
 
         # Obtaining expected output vector
         y_exp = np.zeros(OUTPUTSIZE)
-        y_exp[ord(y) - 65] = 1
+        # y_exp[ord(y) - 65] = 1
+        if y == 'Iris-setosa':
+            y_exp[0] = 1
+        elif y == 'Iris-versicolor':
+            y_exp[1] = 1
+        else:
+            y_exp[2] = 1
 
         # Computing change values
-        # db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
-        # dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
-        # db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
-        # dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
-        # db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
-        # dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
+        db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
+        dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
+        db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
+        dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
+        db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
+        dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
 
-        dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
-        db2 = self.SoftmaxDerivative(dz3)
-        dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
+        # dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
+        # db2 = self.SoftmaxDerivative(dz3)
+        # dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
 
-        dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
-        db1 = self.SoftmaxDerivative(z2)
-        dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
+        # dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
+        # db1 = self.SoftmaxDerivative(z2)
+        # dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
 
-        dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
-        db0 = self.SoftmaxDerivative(z1)
-        dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
+        # dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
+        # db0 = self.SoftmaxDerivative(z1)
+        # dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
 
         # print(f'Changes:\n  dW0 = {dW0}\n  db0 = {db0}\n  dW1 = {dW1}\n  db1 = {db1}\n  dW2 = {dW2}\n  db2 = {db2}')
         # exit()
@@ -246,7 +252,15 @@ class ImgClassifier:
     # highest likelihood of being correct.
     def findLabel(self, pix):
         _, _, _, _, _, a3 = self.forwardProp(pix)
-        return chr(np.argmax(a3) + 65)
+        max_idx = np.argmax(a3)
+        # pred = chr(max_idx + 65)
+        if max_idx == 0:
+            pred = 'Iris-setosa'
+        elif max_idx == 1:
+            pred = 'Iris-versicolor'
+        else:
+            pred = 'Iris-virginica'
+        return pred
 
     # Primary Classification Function.
     def predict(self, X):
