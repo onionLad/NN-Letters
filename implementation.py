@@ -98,6 +98,7 @@ class ImgClassifier:
         # z3 = np.add(np.matmul(self.W2, a2), self.b2)
         # a3 = self.sigmoid(z3)
 
+        # ReLU Code
         z1 = np.add(np.matmul(self.W0, np.atleast_2d(pix).T), self.b0)
         a1 = self.ReLU(z1)
         z2 = np.add(np.matmul(self.W1, np.atleast_2d(a1)), self.b1)
@@ -130,6 +131,8 @@ class ImgClassifier:
         # Obtaining expected output vector
         y_exp = np.zeros(OUTPUTSIZE)
         # y_exp[ord(y) - 65] = 1
+
+        # Obtaining expected output vector for flower data
         if y == 'Iris-setosa':
             y_exp[0] = 1
         elif y == 'Iris-versicolor':
@@ -145,14 +148,24 @@ class ImgClassifier:
         # db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
         # dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
 
+        # New Sigmoid Code
+        # delta2 = np.multiply(self.sigmoidDerivative(z3), np.subtract(y_exp, a3))
+        # dW2 = np.matmul(np.atleast_2d(a2).T, np.atleast_2d(delta2)).T
+        # db2 = self.SoftmaxDerivative(delta2)
+        # delta1 = np.multiply(self.sigmoidDerivative(z2), np.matmul(self.W2.T, delta2))
+        # dW1 = np.matmul(np.atleast_2d(a1).T, np.atleast_2d(delta1)).T
+        # db1 = self.SoftmaxDerivative(delta1)
+        # delta0 = np.multiply(self.sigmoidDerivative(z1), np.matmul(self.W1.T, delta1))
+        # dW0 = np.matmul(np.atleast_2d(X).T, np.atleast_2d(delta0)).T
+        # db0 = self.SoftmaxDerivative(delta0)
+
+        # ReLU Code
         dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
         db2 = self.SoftmaxDerivative(dz3)
         dW2 = np.matmul(np.atleast_2d(dz3), np.atleast_2d(a2).T)
-
         dz2 = np.matmul(self.W2.T, dz3) * np.atleast_2d(self.ReLUDerivative(z2)).T
         db1 = self.SoftmaxDerivative(z2)
         dW1 = np.matmul(np.atleast_2d(dz2), np.atleast_2d(a1).T)
-
         dz1 = np.matmul(self.W1.T, dz2) * np.atleast_2d(self.ReLUDerivative(z1)).T
         db0 = self.SoftmaxDerivative(z1)
         dW0 = np.matmul(np.atleast_2d(dz1), np.atleast_2d(X))
@@ -254,6 +267,8 @@ class ImgClassifier:
         _, _, _, _, _, a3 = self.forwardProp(pix)
         max_idx = np.argmax(a3)
         # pred = chr(max_idx + 65)
+
+        # Obtaining flower data prediction
         if max_idx == 0:
             pred = 'Iris-setosa'
         elif max_idx == 1:
