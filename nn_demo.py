@@ -38,7 +38,7 @@ def sigmoidDerivative(arr):
 
 # Back propagation, taken from Santini's slides.
 def backProp(X, y, b0, W1, b1, z1, a1, z2, a2):
-    delta1 = np.multiply(sigmoidDerivative(z2), np.subtract(y, a2))
+    delta1 = np.multiply(sigmoidDerivative(z2), -2 * np.subtract(y, a2))
     dW1    = np.matmul(np.atleast_2d(a1).T, np.atleast_2d(delta1)).T
     db1    = np.multiply(np.atleast_2d(b1), np.atleast_2d(delta1))
     delta0 = np.multiply(sigmoidDerivative(z1), np.matmul(W1.T, delta1))
@@ -52,10 +52,10 @@ def cycle(x, y, W0, b0, W1, b1):
 
     dW0, db0, dW1, db1 = backProp(x, y, b0, W1, b1, z1, a1, z2, a2)
 
-    W0 = np.add(W0, ALPHA * dW0)
-    b0 = np.add(b0, ALPHA * db0)
-    W1 = np.add(W1, ALPHA * dW1)
-    b1 = np.add(b1, ALPHA * db1)
+    W0 = np.subtract(W0, ALPHA * dW0)
+    b0 = np.subtract(b0, ALPHA * db0)
+    W1 = np.subtract(W1, ALPHA * dW1)
+    b1 = np.subtract(b1, ALPHA * db1)
 
     return W0, b0, W1, b1
 
