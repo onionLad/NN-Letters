@@ -10,7 +10,7 @@
 import os
 import numpy as np
 import pandas as pd
-from implementation import ImgClassifier
+from imp_copy import ImgClassifier
 
 # Globals
 RNG = 10
