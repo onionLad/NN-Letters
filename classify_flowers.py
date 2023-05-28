@@ -10,7 +10,7 @@
 import os
 import numpy as np
 import pandas as pd
-from imp_copy import ImgClassifier
+from implementation import ImgClassifier
 
 # Globals
 RNG = 10
@@ -34,7 +34,7 @@ y_test  = data_te[4].values
 
 # Generating and training the neural network classifier
 classifier = ImgClassifier(alpha=0.01, randomState=RNG)
-classifier.fit(x_train, y_train, numBatches=1, iterations=500)
+classifier.fit(x_train, y_train, numBatches=1, iterations=200)
 
 # Testing the trained classifier and displaying its accuracy
 print('Train Accuracy: ' + str(round(classifier.accuracy(x_train, y_train) * 100, 2)) + '%')
