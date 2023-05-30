@@ -10,10 +10,10 @@
 import os
 import numpy as np
 import pandas as pd
-from implementation import ImgClassifier
+from imp_copy import ImgClassifier
 
 # Globals
-RNG = 10
+RNG = 11
 
 # Body - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -33,10 +33,10 @@ x_test  = data_te[[0, 1, 2, 3]].values
 y_test  = data_te[4].values
 
 # Generating and training the neural network classifier
-classifier = ImgClassifier(alpha=0.01, randomState=RNG)
-classifier.fit(x_train, y_train, numBatches=1, iterations=200)
+classifier = ImgClassifier(alpha=0.5, randomState=RNG)
+classifier.fit(x_train, y_train, numBatches=1, iterations=500)
 
 # Testing the trained classifier and displaying its accuracy
 print('Train Accuracy: ' + str(round(classifier.accuracy(x_train, y_train) * 100, 2)) + '%')
-print('Test Accuracy: ' + str(round(classifier.accuracy(x_test, y_test) * 100, 2)) + '%')
+print('Test Accuracy:  ' + str(round(classifier.accuracy(x_test, y_test) * 100, 2)) + '%')
 

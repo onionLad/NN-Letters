@@ -43,7 +43,7 @@ def backProp(X, y, b0, W1, b1, z1, a1, z2, a2):
     db1    = np.multiply(np.atleast_2d(b1), np.atleast_2d(delta1))
     delta0 = np.multiply(sigmoidDerivative(z1), np.matmul(W1.T, delta1))
     dW0    = np.matmul(np.atleast_2d(X).T, np.atleast_2d(delta0)).T
-    db0    = np.multiply(np.atleast_2d(b0), np.atleast_2d(delta1))
+    db0    = np.multiply(np.atleast_2d(b0), np.atleast_2d(delta0))
     return dW0, db0, dW1, db1
 
 # One iteration of the neural network cycle.

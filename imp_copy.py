@@ -134,24 +134,30 @@ class ImgClassifier:
         else:
             y_exp[2] = 1
 
-        # Computing change values
-        # db2 = np.multiply(-2 * np.subtract(y_exp, a3), self.sigmoidDerivative(z3))
-        # dW2 = np.matmul(np.atleast_2d(db2).T, np.atleast_2d(a2))
-        # db1 = np.multiply(np.matmul(self.W2.T, db2), self.sigmoidDerivative(z2))
-        # dW1 = np.matmul(np.atleast_2d(db1).T, np.atleast_2d(a1))
-        # db0 = np.multiply(np.matmul(self.W1.T, db1), self.sigmoidDerivative(z1))
-        # dW0 = np.matmul(np.atleast_2d(db0).T, np.atleast_2d(X))
-        # db2 = np.atleast_2d(db2).T
-        # db1 = np.atleast_2d(db1).T
-        # db0 = np.atleast_2d(db0).T
+        # Computing change values - Old Code
+        # delta1 = np.multiply(self.sigmoidDerivative(z2), np.subtract(y_exp, a2))
+        # dW1 = np.matmul(np.atleast_2d(a1).T, np.atleast_2d(delta1)).T
+        # db1 = np.multiply(self.b1, np.atleast_2d(delta1).T)
+        # delta0 = np.multiply(self.sigmoidDerivative(z1), np.matmul(self.W1.T, delta1))
+        # dW0 = np.matmul(np.atleast_2d(X).T, np.atleast_2d(delta0)).T
+        # db0 = np.multiply(self.b0, np.atleast_2d(delta0).T)
 
-        # New Sigmoid Code
-        delta1 = np.multiply(self.sigmoidDerivative(z2), np.subtract(y_exp, a2))
-        dW1 = np.matmul(np.atleast_2d(a1).T, np.atleast_2d(delta1)).T
-        db1 = np.multiply(self.b1, np.atleast_2d(delta1).T)
+        # ChatGPT Code
+        # da2 = np.subtract(a2, y_exp)
+        # dz2 = np.atleast_2d(np.multiply(da2, self.sigmoidDerivative(z2))).T
+        # dW1 = np.dot(dz2, np.atleast_2d(a1))
+        # db1 = dz2
+        # dz1 = np.multiply(np.dot(self.W1.T, dz2), np.atleast_2d(self.sigmoidDerivative(z1)).T)
+        # dW0 = np.dot(dz1, np.atleast_2d(X))
+        # db0 = dz1
+
+        # Santini's Code
+        delta1 = np.multiply(self.sigmoidDerivative(z2), -2 * np.subtract(y_exp, a2))
+        dW1    = np.matmul(np.atleast_2d(a1).T, np.atleast_2d(delta1)).T
+        db1    = np.multiply(self.b1, np.atleast_2d(delta1).T)
         delta0 = np.multiply(self.sigmoidDerivative(z1), np.matmul(self.W1.T, delta1))
-        dW0 = np.matmul(np.atleast_2d(X).T, np.atleast_2d(delta0)).T
-        db0 = np.multiply(self.b0, np.atleast_2d(delta0).T)
+        dW0    = np.matmul(np.atleast_2d(X).T, np.atleast_2d(delta0)).T
+        db0    = np.multiply(self.b0, np.atleast_2d(delta0).T)
 
         # ReLU Code
         # dz3 = np.subtract(a3, np.atleast_2d(y_exp).T)
@@ -213,37 +219,45 @@ class ImgClassifier:
         print(f'  Avg dW2: {np.mean(abs(dW2))}')
         print(f'  Avg db2: {np.mean(abs(db2))}\n')
 
+    # Function that runs one iteration of the neural network learning cycle.
+    def cycle(self, X, y):
+        for idx, x in enumerate(X):
+            z1, a1, z2, a2 = self.forwardProp(x)
+            dW0, db0, dW1, db1 = self.backProp(x, y[idx], z1, a1, z2, a2)
+            self.W0 = np.subtract(self.W0, self.alpha * dW0)
+            self.b0 = np.subtract(self.b0, self.alpha * db0)
+            self.W1 = np.subtract(self.W1, self.alpha * dW1)
+            self.b1 = np.subtract(self.b1, self.alpha * db1)
+
     # Primary Training Function.
     def fit(self, X, y, numBatches=1, iterations=500):
         # Randomly split data into batches
         batches = self.batchData(X, y, numBatches, self.rand)
         print('Initial Training Accuracy: ' + str(self.accuracy(X, y)))
-        # self.printMembers()
         initB0 = self.b0[0]
 
+        # for i in range(iterations):
+
+        #     # Loop over the batches
+        #     # For each batch, perform forward prop, back prop, and update weights
+        #     # and biases according to average adjustments found using back prop
+        #     for idx, batch in enumerate(batches):
+        #         curr_X = np.array([pair[:INPUTSIZE] for pair in batch], dtype=float)
+        #         curr_y = np.array([pair[INPUTSIZE] for pair in batch])
+
+        #         dW0, db0, dW1, db1 = self.getAvgAdjustments(curr_X, curr_y)
+        #         self.updateParams( dW0, db0, dW1, db1 )
+
+        #     if i % 10 == 0:
+        #         print('Processed iteration ' + str(i) + '/' + str(iterations))
+        #         print('  Current Accuracy: ' + str(self.accuracy(X, y)))
+
         for i in range(iterations):
-            # self.printMembers()
-
-            # Loop over the batches
-            # For each batch, perform forward prop, back prop, and update weights
-            # and biases according to average adjustments found using back prop
-            for idx, batch in enumerate(batches):
-                curr_X = np.array([pair[:INPUTSIZE] for pair in batch], dtype=float)
-                curr_y = np.array([pair[INPUTSIZE] for pair in batch])
-
-                dW0, db0, dW1, db1 = self.getAvgAdjustments(curr_X, curr_y)
-                # self.printChanges(dW0, db0, dW1, db1, dW2, db2)
-                self.updateParams( dW0, db0, dW1, db1 )
-                # print('Processed batch ' + str(idx) + '/' + str(numBatches))
-                # print(f'Changes:\n  dW0 = {dW0}\n  db0 = {db0}\n  dW1 = {dW1}\n  db1 = {db1}\n  dW2 = {dW2}\n  db2 = {db2}')
-
-            # print('- - - - - - - - - - -')
-            # self.printMembers()
-            if i % 10 == 0:
+            self.cycle(X, y)
+            if i % (iterations / 50) == 0:
                 print('Processed iteration ' + str(i) + '/' + str(iterations))
-            # if i % 100 == 0:
                 print('  Current Accuracy: ' + str(self.accuracy(X, y)))
-        # self.printMembers()
+
         print(f'\nChange in b0[0]: {(initB0 - self.b0[0])[0]}\n')
 
 
@@ -253,6 +267,7 @@ class ImgClassifier:
     # highest likelihood of being correct.
     def findLabel(self, pix):
         _, _, _, a2 = self.forwardProp(pix)
+        # print(a2)
         max_idx = np.argmax(a2)
         # pred = chr(max_idx + 65)
 
@@ -272,5 +287,6 @@ class ImgClassifier:
     # Accuracy Function.
     def accuracy(self, X, y):
         predictions = self.predict(X)
-        return np.sum([predictions[i] == x for i, x in enumerate(y)]) / float(len(predictions))
+        # print(predictions)
+        return np.sum([predictions[i] == actual for i, actual in enumerate(y)]) / float(len(predictions))
 
