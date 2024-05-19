@@ -1,4 +1,4 @@
-# NN-Letters
+# NN-Flowers
 A neural network designed to classify flowers found in the iris dataset. We started this project in May of 2023. Back then, we began with the much more ambitious task of classifying hand-written letters (hence this repo's name). We reattempted the project in May of 2024 using the iris dataset instead.
 
 ## Inspiration
